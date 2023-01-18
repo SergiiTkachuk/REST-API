@@ -4,7 +4,7 @@
   "main": "index.js",
   "description": "Databases course work template",
   "repository": "https://github.com/Dolaran/IM12_theme_2_BD_22_course_work",
-  "author": "Andrey Boldak <boldak.andrey@gmail.com>",
+  "author": "Serhii Tkachuk <sergiytkachuk29@gmail.com>",
   "license": "ECL 2.0",
   "scripts": {
     "docs:dev": "npx vuepress dev docs",
@@ -14,7 +14,10 @@
   "dependencies": {
     "@vuepress/plugin-back-to-top": "^1.7.1",
     "@vuepress/plugin-pwa": "^1.7.1",
-    "vuepress": "^1.8.2",
+    "express": "^4.18.2",
+    "mysql": "^2.18.1",
+    "nodemon": "^2.0.20",
+    "vuepress": "^1.7.1",
     "vuepress-theme-cool": "^1.3.1"
   }
 }

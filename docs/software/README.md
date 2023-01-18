@@ -215,3 +215,199 @@ create index django_session_expire_date_a5c62663 on django_session (expire_date)
 
 - RESTfull сервіс для управління даними
 
+## Кореневий файл серверу
+```js
+const http = require('http');
+const app = require('./index.js');
+
+const port = 4000;
+
+const server = http.createServer(app);
+
+server.listen(port);
+```
+
+## Файл управління сервером
+```js
+const express = require('express')
+const dataFileRoutes = require('./routes/dataFileRoutes.js');
+
+const app = express();
+
+app.use(express.json());
+app.use('/dataset', dataFileRoutes);
+
+module.exports = app;
+```
+## Файл для підключення до бази даних
+```js
+const mysql = require('mysql');
+
+const db = mysql.createConnection({
+    port: 3306,
+    host: 'localhost',
+    user: 'root',
+    password: '123456',
+    database: 'lab6'
+});
+
+db.connect((err) => {
+    if (!err){
+        console.log('Connected to the database');
+    } else {
+        console.log(err);
+    }
+});
+
+module.exports = db;
+```
+## Кореневий файл контроллера
+```js
+const express = require('express');
+const { createDataFile, getDataFiles, getDataFile, deleteDataFile, updateDataFile } = require( '../controllers/dataFilesController.js');
+
+const router = express.Router();
+
+router.get('/', getDataFiles);
+
+router.post('/', createDataFile);
+
+router.get('/:id', getDataFile);
+
+router.delete('/:id', deleteDataFile);     
+
+router.patch('/:id', updateDataFile);
+
+module.exports = router;
+```
+
+## Файл контроллеру для управління запитами
+```js
+const db = require('../db_config/db_config.js');
+
+const createDataFile = (req, res) => {   
+    const { name, description, category_id} = req.body;
+    const query = 'INSERT INTO dataset (name, description, category_id) VALUES (?, ?, ?)';
+    const date_creation = new Date();
+
+    if (!(name && description && category_id)) {
+        return res.status(404);
+    }
+
+    db.query('SELECT COUNT(*) AS namesCount FROM dataset WHERE name=?', [name], (err, result) => {
+        const count = result[0].namesCount;
+        if(count !== 0) {
+            const message = `Dataset with name:[${name}] is already existing`;
+            return res
+                .status(404)
+                .json({message});
+        }
+
+        db.query(query, [name, description, category_id], (err, result) => {
+            if(!err){
+                const message = `Dataset with name:[${name}] was added`;
+                return res
+                    .status(200)
+                    .json({message});
+            } else {
+                return res
+                    .status(500)
+                    .json(err);
+            }
+        });
+    });
+    
+};
+
+const getDataFiles = (req, res) => {
+
+    const query = 'SELECT * FROM dataset';
+    db.query(query, (err,result) => {
+        if(!err){
+            const message = 'Dataset were succsesfuly received';
+            return res
+                .status(200)
+                .json({message, result});
+        } else {
+            return res
+                .status(500)
+                .json(err);
+        }
+    });
+};
+
+const getDataFile = (req, res) => {
+    const id = req.params.id;
+    const query = 'SELECT * FROM dataset WHERE id=?';
+
+    db.query(query, [id], (err,result) => {
+        if (result.length == 0) {
+            const message = `No dataset with id:[${id}]`;
+            return res
+                .status(404)
+                .json({message});
+        }
+        if(!err){
+            const message = `Dataset with id:[${id}] was recieved`;
+            return res
+                .status(200)
+                .json({message, result});
+        } else {
+            return res
+                .status(500)
+                .json(err);
+        }
+    });
+};
+
+const deleteDataFile = (req, res) => { 
+    const id = req.params.id;
+    const query = 'DELETE FROM dataset WHERE id=?';
+
+    db.query(query, [id], (err, result) => {
+        if(result.affectedRows == 0) {
+            const message = `No dataset with id:[${id}]`;
+            return res
+                .status(404)
+                .json({message});
+        }
+        if(!err){
+            const message = `Dataset with id:[${id}] was succsessfuly deleted`;
+            return res
+                .status(200)
+                .json({message});
+        } else {
+            return res
+                .status(500)
+                .json(err);
+        }
+    });
+};
+
+const updateDataFile =  (req,res) => {
+    const id = req.params.id; 
+    const { name, description, category_id } = req.body;
+    const query = 'UPDATE dataset SET name=?, description=?, category_id=? where id=?';
+
+    db.query(query, [name, description, category_id, id],(err, result) => {
+        if(result.affectedRows == 0) {
+            const message = `No dataset with id:[${id}]`;
+            return res
+                .status(404)
+                .json({message});
+        }
+        if (!err) {
+            const message = `Dataset with id:[${id}] succsessfuly updated`;
+            return res
+                .status(200)
+                .json({message});
+        } else {
+            return res
+                .status(500)
+                .json(err);
+        }
+    });
+};
+
+module.exports = {createDataFile, getDataFiles, getDataFile, deleteDataFile, updateDataFile};
+```
