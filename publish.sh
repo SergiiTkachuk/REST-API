@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # abort on errors
-set -e
+#set -e
 
 # build
 npm run docs:build
@@ -20,6 +20,6 @@ git commit -m 'deploy'
 # git push -f git@github.com:boldak/<USERNAME>.github.io.git master
 
 # if you are deploying to https://<USERNAME>.github.io/<REPO>
-git push -f https://github.com/dolaran/IM12_theme_2_BD_22_course_work master:gh-pages
+git push -f https://github.com/SergiiTkachuk/REST-API master:gh-pages
 
 cd -
